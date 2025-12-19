@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Item Finder</title>
+</head>
+<body>
+    <h2>🛒 Item Finder</h2>
+
+    <form method="POST">
+        <input type="text" name="item" placeholder="Enter item name" required>
+        <button type="submit">Search 🔍</button>
+    </form>
+
+    {% if item %}
+        <hr>
+        <p><strong>Item Name:</strong> {{ item.name }}</p>
+        <p><strong>Price:</strong> {{ item.price }}</p>
+        <p><strong>Link:</strong> <a href="{{ item.link }}" target="_blank">View Product</a></p>
+        <p><strong>Description:</strong> {{ item.description }}</p>
+    {% endif %}
+</body>
+</html>
