@@ -1,22 +1,153 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Item Finder</title>
-</head>
-<body>
-    <h2>🛒 Item Finder</h2>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Item Recommender</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
 
-    <form method="POST">
-        <input type="text" name="item" placeholder="Enter item name" required>
-        <button type="submit">Search 🔍</button>
-    </form>
+  <body>
+    <main class="page">
+      <div class="container">
+        <!-- Header -->
+        <header class="hero">
+          <h1 class="hero__title">Item Recommender</h1>
+          <p class="hero__subtitle">Find the perfect recommendations for your items</p>
+        </header>
 
-    {% if item %}
-        <hr>
-        <p><strong>Item Name:</strong> {{ item.name }}</p>
-        <p><strong>Price:</strong> {{ item.price }}</p>
-        <p><strong>Link:</strong> <a href="{{ item.link }}" target="_blank">View Product</a></p>
-        <p><strong>Description:</strong> {{ item.description }}</p>
-    {% endif %}
-</body>
+        <!-- Search Card -->
+        <section class="card card--search" aria-label="Search">
+          <div class="field">
+            <label class="label" for="itemName">What item would you like recommendations for?</label>
+            <input
+              id="itemName"
+              class="input"
+              type="text"
+              placeholder="Type an item name..."
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label" for="minPrice">Price Range (optional)</label>
+
+            <div class="range">
+              <input id="minPrice" class="input" type="number" inputmode="numeric" placeholder="Min price" />
+              <span class="range__sep">to</span>
+              <input id="maxPrice" class="input" type="number" inputmode="numeric" placeholder="Max price" />
+            </div>
+          </div>
+
+          <button id="searchBtn" class="btn btn--primary" type="button">
+            <span class="btn__icon" aria-hidden="true">
+              <!-- search icon -->
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </span>
+            Search
+          </button>
+
+          <p class="hint">
+            UI demo: results are mocked in JavaScript (replace with your API call later).
+          </p>
+        </section>
+
+        <!-- Results (hidden until search) -->
+        <section id="results" class="results" hidden aria-label="Results">
+          <div class="card">
+            <div class="card__titleRow">
+              <div class="titleRow__left">
+                <span class="iconBadge" aria-hidden="true">
+                  <!-- trending up icon -->
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M3 17l7-7 4 4 7-7"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M14 7h7v7"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+                <h2 class="card__title">Ranked Recommendations</h2>
+              </div>
+
+              <div class="pill">
+                <span class="pill__dot" aria-hidden="true"></span>
+                <span id="resultMeta">0 results</span>
+              </div>
+            </div>
+
+            <div id="recommendationList" class="stack"></div>
+          </div>
+
+          <!-- AI Reasoning -->
+          <div class="card card--gradient">
+            <div class="reasoning">
+              <div class="reasoning__icon" aria-hidden="true">
+                <!-- lightbulb icon -->
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M9 18h6"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M10 22h4"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M12 2a7 7 0 0 0-4 12c.6.5 1 1.3 1 2v1h6v-1c0-.7.4-1.5 1-2A7 7 0 0 0 12 2Z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+
+              <div class="reasoning__body">
+                <h2 class="card__title">AI Reasoning</h2>
+
+                <p class="reasoning__line">
+                  <strong id="cfCondition">If you were okay with subscription models:</strong>
+                </p>
+
+                <p id="cfReasoning" class="reasoning__text"></p>
+
+                <div class="glass">
+                  <p class="glass__text">
+                    Alternative recommendation:
+                    <strong id="cfAlternative"></strong>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer class="footer">
+          <span>© <span id="year"></span> Item Recommender</span>
+        </footer>
+      </div>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
 </html>
