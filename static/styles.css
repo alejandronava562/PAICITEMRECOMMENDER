@@ -395,14 +395,21 @@
   }
   .glass__text strong{ color: rgba(88,28,135,.92); }
   
+  #uniquething {
+    color: whitesmoke;
+  }
+  .hidden {
+    display:none;
+  }
+  
+  
   /* Footer */
   .footer{
     margin-top: 18px;
     text-align: center;
     color: rgba(255,255,255,.62);
     font-size: 14px;
-  }
-  
+}
   /* Responsive */
   @media (max-width: 720px){
     .page{ padding: 26px 14px 50px; }
