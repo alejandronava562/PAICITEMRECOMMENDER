@@ -122,9 +122,33 @@
     outline: none;
     transition: border-color .15s ease, box-shadow .15s ease, transform .05s ease;
   }
+  textarea,
+  textarea.input,
+  .input--textarea{
+    width: 100%;
+    appearance: none;
+    border: 2px solid rgba(15, 23, 42, .18);
+    background: rgba(2, 6, 23, .04);
+    border-radius: 18px;
+    padding: 16px 18px;
+    font-size: 16px;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 96px;
+    font-family: inherit;
+    box-sizing: border-box;
+  }
+
   .input:focus{
     border-color: rgba(15, 23, 42, .55);
     box-shadow: 0 0 0 5px var(--focus);
+  }
+  textarea:focus,
+  textarea.input:focus,
+  .input--textarea:focus{
+    border-color: rgba(15, 23, 42, .55);
+    box-shadow: 0 0 0 5px var(--focus);
+    outline: none;
   }
   .range{
     display: grid;
@@ -378,7 +402,7 @@
   }
   .reasoning__text{
     margin: 0;
-    color: rgba(15, 23, 42, .74);
+    color: #72aef3;
     line-height: 1.7;
   }
   .glass{

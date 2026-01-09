@@ -47,6 +47,7 @@ def find():
     item = (data.get("query") or data.get("item") or "").strip()
     min_price = data.get("min_price")
     max_price = data.get("max_price")
+    context = data.get("reasoning")
 
     def to_number(value):
         try:
@@ -70,20 +71,22 @@ def find():
         "product_name": string,
         "price": float,
         "link": string (URL),
-        "item_description": string
+        "item_description": string,
+        "reasoning": string
     }
     """
     search_user_prompt = f"""
     'Item: {item}'
     'Min Price : {min_price if min_price is not None else 'none'} 
     'Max Price : {max_price if max_price is not None else 'none'}
+    'User Context : {context or 'None'}'
     {search_system_prompt}
     """
 
     response = client.responses.create(
         model="gpt-5-mini",
         tools=[{"type": "web_search"}],
-        input=search_user_prompt
+        input=search_user_prompt,
     )
 
     raw_response = response.output_text.strip()
@@ -92,9 +95,9 @@ def find():
     try:
         data = json.loads(raw_response)
     except Exception as e:
-        # FIXME : Change Error Code message
-        print(f"{e}")
-    
+        print(f"JSON parse error: {e}\nRaw: {raw_response}")
+        return {"error": "Could not parse AI response. Please try again."}, 502
+
     result = {
         "title": data.get("product_name"),
         "price": data.get("price"),
@@ -112,10 +115,6 @@ def find():
         "count": 1,
         "source": "chatgpt-web-search",
     }
-
-    
-
-    return "hello :D"
 
 
 if __name__ == "__main__":

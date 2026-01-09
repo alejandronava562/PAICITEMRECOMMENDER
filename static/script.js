@@ -1,127 +1,188 @@
-// script.js — UI only (Flask compatible)
+// script.js — wires UI to Flask /find endpoint using ChatGPT-backed search
 
-// helpers
 const $ = (id) => document.getElementById(id);
 
+const els = {
+  item: $("itemName"),
+  min: $("minPrice"),
+  max: $("maxPrice"),
+  button: $("searchBtn"),
+  status: $("status"),
+  resultsSection: $("results"),
+  meta: $("resultMeta"),
+  list: $("recommendationList"),
+  reasoning: $("cfReasoning"),
+  alternative: $("cfAlternative"),
+  year: $("year"),
+  reasoningInput: document.getElementById("preferences")
+};
+
 function escapeHTML(str) {
-  return String(str)
+  return String(str || "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
+    .replaceAll("\"", "&quot;")
     .replaceAll("'", "&#039;");
 }
 
-// mock data (replace with Flask API later)
-function mockRecommendations(item, min, max) {
-  const base = min || 100;
-
-  return {
-    results: [
-      {
-        rank: 1,
-        name: `Premium ${item}`,
-        price: `$${base}`,
-        score: 94,
-        description: "High quality build with excellent long-term value.",
-        reason: "Best overall balance of quality, durability, and features."
-      },
-      {
-        rank: 2,
-        name: `Standard ${item}`,
-        price: `$${Math.floor(base * 0.7)}`,
-        score: 88,
-        description: "Reliable option that meets most user needs.",
-        reason: "Great value without unnecessary premium features."
-      },
-      {
-        rank: 3,
-        name: `Budget ${item}`,
-        price: `$${Math.floor(base * 0.5)}`,
-        score: 81,
-        description: "Basic functionality at the lowest price.",
-        reason: "Best choice if cost is the top priority."
-      }
-    ],
-    reasoning: {
-      condition: "If subscription models were acceptable",
-      alternative: `${item} Pro Subscription`,
-      explanation:
-        "A subscription plan could offer continuous upgrades, but one-time purchases better fit your constraints."
-    }
-  };
+function formatPrice(value, currency = "USD") {
+  if (value === null || value === undefined || value === "") return "Price unavailable";
+  const num = Number(value);
+  if (Number.isNaN(num)) return String(value);
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 2,
+    }).format(num);
+  } catch (_err) {
+    return `$${num.toFixed(2)}`;
+  }
 }
 
-// render UI
-function renderResults(data) {
-  const list = $("recommendationList");
-  list.innerHTML = "";
-
-  data.results.forEach((item) => {
-    const card = document.createElement("div");
-    card.className = `rec-card rank-${item.rank}`;
-
-    card.innerHTML = `
-      <div class="rec-header">
-        <span class="rank-badge">${item.rank === 1 ? "★" : `#${item.rank}`}</span>
-        <div>
-          <h3>${escapeHTML(item.name)}</h3>
-          <p class="price">${escapeHTML(item.price)}</p>
-        </div>
-        <span class="score">${item.score}%</span>
-      </div>
-
-      <div class="score-bar">
-        <div class="score-fill" style="width:0%"></div>
-      </div>
-
-      <p class="desc">${escapeHTML(item.description)}</p>
-
-      <div class="reason">
-        <strong>Why this option:</strong>
-        <p>${escapeHTML(item.reason)}</p>
-      </div>
-    `;
-
-    list.appendChild(card);
-
-    // animate score bar
-    requestAnimationFrame(() => {
-      card.querySelector(".score-fill").style.width = `${item.score}%`;
-    });
-  });
-
-  // AI reasoning
-  $("aiReasoning").innerHTML = `
-    <p><strong>${data.reasoning.condition}:</strong></p>
-    <p>${escapeHTML(data.reasoning.explanation)}</p>
-    <p><em>Alternative:</em> ${escapeHTML(data.reasoning.alternative)}</p>
-  `;
-
-  $("results").style.display = "block";
+function setStatus(message, tone = "info") {
+  if (!els.status) return;
+  els.status.textContent = message || "";
+  els.status.style.color =
+    tone === "error" ? "#b91c1c" : tone === "muted" ? "rgba(15,23,42,.6)" : "inherit";
 }
 
-// search handler
-function handleSearch() {
-  const item = $("itemInput").value.trim();
-  if (!item) {
-    $("itemInput").focus();
+function toggleLoading(isLoading) {
+  if (!els.button) return;
+  els.button.disabled = isLoading;
+  els.button.textContent = isLoading ? "Searching..." : "Search";
+}
+
+function renderResults(payload) {
+  const results = Array.isArray(payload.results) ? payload.results : [];
+  els.list.innerHTML = "";
+
+  if (!results.length) {
+    els.resultsSection.classList.remove("hidden");
+    els.resultsSection.hidden = false;
+    els.meta.textContent = "0 results";
+    setStatus("No results found. Try a different query.", "muted");
+    els.reasoning.textContent = "";
+    els.alternative.textContent = "";
     return;
   }
 
-  const min = Number($("minPrice").value);
-  const max = Number($("maxPrice").value);
+  results.forEach((item, idx) => {
+    const card = document.createElement("article");
+    card.className = `rec ${idx === 0 ? "rec--top" : ""}`.trim();
 
-  const data = mockRecommendations(item, min, max);
-  renderResults(data);
+    const rankClass = idx + 1 <= 3 ? `rank--${idx + 1}` : "";
+    const priceLabel = formatPrice(item.price, item.currency);
+    const score = item.rating ? Math.round(Number(item.rating)) : 90 - idx * 5;
+
+    card.innerHTML = `
+      <div class="rec__top">
+        <div class="rec__left">
+          <div class="rank ${rankClass}">${idx + 1}</div>
+          <div>
+            <h3 class="rec__name">${escapeHTML(item.title || item.name || payload.item || "")}</h3>
+            <div class="rec__price">${escapeHTML(priceLabel)}</div>
+          </div>
+        </div>
+        ${item.url ? `<a class="linkBtn" href="${escapeHTML(item.url)}" target="_blank" rel="noopener">View</a>` : ""}
+      </div>
+
+      <div class="score">
+        <div class="score__row">
+          <div class="score__label">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M5 12l3 3 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Quality Score
+          </div>
+          <div class="score__pct">${score}%</div>
+        </div>
+        <div class="bar"><div style="width:0%; background: var(--good);"></div></div>
+      </div>
+
+      <p class="rec__desc">${escapeHTML(item.summary || item.description || "No description provided yet.")}</p>
+      <div class="rationale">
+        <h4>Reasoning</h4>
+        <p>${escapeHTML(item.reason || "Top picks surfaced by the AI based on your filters.")}</p>
+      </div>
+    `;
+
+    els.list.appendChild(card);
+
+    // animate score bar fill
+    requestAnimationFrame(() => {
+      const barFill = card.querySelector(".bar > div");
+      if (barFill) barFill.style.width = `${Math.max(0, Math.min(score, 100))}%`;
+    });
+  });
+
+  const metaText = `${results.length} result${results.length === 1 ? "" : "s"}`;
+  els.meta.textContent = payload.source ? `${metaText} · ${payload.source}` : metaText;
+
+  els.reasoning.textContent =
+    results[0]?.summary || payload.reasoning || "AI explanation will appear once results load.";
+  els.alternative.textContent =
+    results[0]?.title || payload.item || "Another option will appear here.";
+
+  els.resultsSection.classList.remove("hidden");
+  els.resultsSection.hidden = false;
+  setStatus("");
 }
 
-// setup
-document.addEventListener("DOMContentLoaded", () => {
-  $("searchBtn").addEventListener("click", handleSearch);
+function getNumberValue(input) {
+  const value = input?.value?.trim();
+  if (!value) return null;
+  const num = Number(value);
+  return Number.isNaN(num) ? null : num;
+}
 
-  ["itemInput", "minPrice", "maxPrice"].forEach((id) => {
-    $(id).addEventListener("keydown", (e) => {
+async function handleSearch() {
+  const query = els.item.value.trim();
+  if (!query) {
+    setStatus("Please enter an item to search for.", "error");
+    els.item.focus();
+    return;
+  }
+
+  const payload = {
+    query,
+    min_price: getNumberValue(els.min),
+    max_price: getNumberValue(els.max),
+    reasoning: els.reasoningInput?.value?.trim() || null
+  };
+
+  setStatus("Searching...", "muted");
+  toggleLoading(true);
+
+  try {
+    const res = await fetch("/find", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      setStatus(data.error || "Search failed. Try again.", "error");
+      return;
+    }
+
+    renderResults(data);
+  } catch (err) {
+    console.error(err);
+    setStatus("Unable to search right now. Please try again in a moment.", "error");
+  } finally {
+    toggleLoading(false);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (els.year) els.year.textContent = new Date().getFullYear();
+
+  els.button?.addEventListener("click", handleSearch);
+
+  [els.item, els.min, els.max].forEach((input) => {
+    input?.addEventListener("keydown", (e) => {
       if (e.key === "Enter") handleSearch();
     });
   });
