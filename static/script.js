@@ -176,6 +176,99 @@ async function handleSearch() {
   }
 }
 
+const chatEls = {
+  box: document.getElementById("chatbox"),
+  fab: document.getElementById("chatFab"),
+  log: document.getElementById("chatLog"),
+  text: document.getElementById("chatText"),
+  send: document.getElementById("chatSend"),
+  context: document.getElementById("chatContext"),
+};
+
+const chatState = {
+  history: [],
+  currentItem: null,
+  sending: false,
+};
+
+function toggleChat() {
+  if (!chatEls.box) return;
+  const isOpen = chatEls.box.classList.contains("open");
+  chatEls.box.classList.toggle("open", !isOpen);
+  if (isOpen) {
+    chatEls.box.hidden = true;
+    chatEls.box.classList.add("hidden");
+  } else {
+    chatEls.box.hidden = false;
+    chatEls.box.classList.remove("hidden");
+  }
+}
+
+function appendChat(role, text) {
+  if (!chatEls.log) return;
+  const div = document.createElement("div");
+  div.className = `chat-msg ${role}`;
+  div.textContent = `${role === "user" ? "You" : "AI"}: ${text}`;
+  chatEls.log.appendChild(div);
+  chatEls.log.scrollTop = chatEls.log.scrollHeight;
+}
+
+async function sendChat() {
+  if (chatState.sending) return;
+  const content = chatEls.text?.value?.trim();
+  if (!content) return;
+
+  chatState.history.push({ role: "user", content });
+  appendChat("user", content);
+  chatEls.text.value = "";
+  chatState.sending = true;
+  chatEls.send.disabled = true;
+  chatEls.send.textContent = "Sending...";
+
+  try {
+    const res = await fetch("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        item: chatState.currentItem,
+        messages: chatState.history,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      appendChat("assistant", data.error || "Sorry, I couldn't reply.");
+      return;
+    }
+    chatState.history.push({ role: "assistant", content: data.reply });
+    appendChat("assistant", data.reply);
+    if (data.item && !chatState.currentItem) chatState.currentItem = data.item;
+  } catch (err) {
+    console.error(err);
+    appendChat("assistant", "Sorry, I couldn't reply. Try again.");
+  } finally {
+    chatState.sending = false;
+    chatEls.send.disabled = false;
+    chatEls.send.textContent = "Send";
+  }
+}
+
+// Hook up events
+chatEls.fab?.addEventListener("click", toggleChat);
+chatEls.send?.addEventListener("click", sendChat);
+chatEls.text?.addEventListener("keydown", (e) => { if (e.key === "Enter") sendChat(); });
+
+// Optional: close on ESC
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && chatEls.box?.classList.contains("open")) toggleChat();
+});
+
+// When you have a search result, set chatState.currentItem and optionally open chat
+// Example to call in your search success handler:
+// chatState.currentItem = topResultTitle;
+// chatEls.context.textContent = `Discussing: ${topResultTitle}`;
+// chatEls.box.hidden = false; chatEls.box.classList.add("open");
+
+
 document.addEventListener("DOMContentLoaded", () => {
   if (els.year) els.year.textContent = new Date().getFullYear();
 

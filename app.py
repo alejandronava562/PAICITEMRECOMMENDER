@@ -40,6 +40,35 @@ def index():
 
     return render_template("index.html", item=item_info)
 
+@app.route("/chat", methods=["POST"])
+def chat():
+    data = request.get_json(silent=True) or {}
+    item = data.get("item") or ""
+    messages = data.get("messages")
+    if not messages:
+        return {"error": "No message provided"}
+    convo = [
+        {
+            "role": "system",
+            "content": f"You are helping with follow up questions for an item recommender app. The item is {item or ""}"
+        }
+    ]
+
+    for i in range(len(messages)):
+        role = messages[i].get("role")
+        content = messages[i].get("content")
+        if content:
+            convo.append({
+                "role": role, "content": content
+            })
+
+    try:
+        response = client.responses.create(model="gpt-5-mini",input=convo)
+        reply = response.output_text.strip()
+    except Exception as e: 
+        return {"error": "Failed"}
+    return {"reply" : reply, "item": item}
+
 
 @app.route("/find", methods=["POST"])
 def find():

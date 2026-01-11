@@ -173,6 +173,44 @@
           </div>
         </section>
 
+            <!-- Chat / Follow-ups -->
+    <section id="chatbox" class="card card--chat hidden" aria-label="Chat about the item" hidden>
+      <div class="card__titleRow">
+        <div class="titleRow__left">
+          <span class="iconBadge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M4 4h16v12H7l-3 3V4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 9h6M9 13h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <h2 class="card__title">Ask follow-up questions</h2>
+        </div>
+        <div class="pill">
+          <span class="pill__dot" aria-hidden="true"></span>
+          <span id="chatContext">Ready anytime</span>
+        </div>
+      </div>
+
+      <div id="chatLog" class="chat-log" aria-live="polite"></div>
+
+      <div class="chat-input">
+        <input
+          id="chatText"
+          type="text"
+          class="input"
+          placeholder="Ask anything about the recommended item..."
+          autocomplete="off"
+        />
+        <button id="chatSend" class="btn btn--primary" type="button">Send</button>
+      </div>
+    </section>
+
+    <!-- Floating chat button -->
+    <button id="chatFab" class="chat-fab" type="button" aria-label="Open chat">
+      <span aria-hidden="true">💬</span>
+    </button>
+        
+
         <footer class="footer">
           <span>© <span id="year"></span> Item Recommender</span>
         </footer>

@@ -456,3 +456,89 @@
     .reasoning__icon{ width: 48px; height: 48px; border-radius: 16px; }
   }
   
+.chat-fab {
+  position: fixed;
+  right: 10px;
+  bottom: 18px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  font-size: 22px;
+  box-shadow: 0 12px 28px rgba(0,0,0,.28);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform .12s ease, box-shadow .15s ease, background .15s ease;
+  z-index: 1000;
+}
+.chat-fab:hover { background: var(--primary-hover); transform: translateY(-1px); }
+.chat-fab:active { transform: translateY(0); }
+
+.card--chat {
+  position: fixed;
+  right: 18px;
+  bottom: 90px;
+  width: min(520px, 94vw);
+  height: min(560px, 75vh);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+  transform: translateY(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+  z-index: 900;
+}
+.card--chat.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.card--chat .card__titleRow{
+  margin-bottom: 0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.card--chat .card__title{
+  font-size: 26px;
+  line-height: 1.1;
+}
+.card--chat .iconBadge{
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+}
+.card--chat .iconBadge svg{
+  width: 20px;
+  height: 20px;
+}
+
+.chat-log {
+  border: 1px solid rgba(15, 23, 42, .12);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(2,6,23,.02);
+  flex: 1 1 auto;
+  min-height: 180px;
+  max-height: none;
+  overflow-y: auto;
+  color: var(--ink-2);
+}
+.chat-msg { margin: 6px 0; line-height: 1.4; }
+.chat-msg.user { font-weight: 700; color: var(--ink); }
+.chat-msg.assistant { color: rgba(15, 23, 42, .75); }
+
+.chat-input {
+  margin-top: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+#chatSend { width: auto; padding: 12px 18px; }
