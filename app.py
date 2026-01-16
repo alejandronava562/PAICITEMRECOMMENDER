@@ -135,6 +135,7 @@ def find():
         "review_count": data.get("review_count"),
         "url": data.get("link"),
         "summary": data.get("item_description"),
+        "reason": data.get("reasoning"),
     }
 
     return {

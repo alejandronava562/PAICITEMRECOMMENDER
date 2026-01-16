@@ -26,6 +26,12 @@ function escapeHTML(str) {
     .replaceAll("'", "&#039;");
 }
 
+function stripUrls(str) {
+  if (!str) return str;
+  // Remove URLs from text
+  return String(str).replace(/https?:\/\/[^\s]+/gi, '').trim();
+}
+
 function formatPrice(value, currency = "USD") {
   if (value === null || value === undefined || value === "") return "Price unavailable";
   const num = Number(value);
@@ -85,7 +91,14 @@ function renderResults(payload) {
             <div class="rec__price">${escapeHTML(priceLabel)}</div>
           </div>
         </div>
-        ${item.url ? `<a class="linkBtn" href="${escapeHTML(item.url)}" target="_blank" rel="noopener">View</a>` : ""}
+        ${item.url ? `<a class="linkBtn" href="${escapeHTML(item.url)}" target="_blank" rel="noopener">
+          View
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M15 3h6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 14L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>` : ""}
       </div>
 
       <div class="score">
@@ -99,10 +112,10 @@ function renderResults(payload) {
         <div class="bar"><div style="width:0%; background: var(--good);"></div></div>
       </div>
 
-      <p class="rec__desc">${escapeHTML(item.summary || item.description || "No description provided yet.")}</p>
+      <p class="rec__desc">${escapeHTML(stripUrls(item.summary || item.description) || "No description provided yet.")}</p>
       <div class="rationale">
         <h4>Reasoning</h4>
-        <p>${escapeHTML(item.reason || "Top picks surfaced by the AI based on your filters.")}</p>
+        <p>${escapeHTML(stripUrls(item.reason) || "Top picks surfaced by the AI based on your filters.")}</p>
       </div>
     `;
 
@@ -119,7 +132,7 @@ function renderResults(payload) {
   els.meta.textContent = payload.source ? `${metaText} · ${payload.source}` : metaText;
 
   els.reasoning.textContent =
-    results[0]?.summary || payload.reasoning || "AI explanation will appear once results load.";
+    stripUrls(results[0]?.reason || payload.reasoning) || "AI explanation will appear once results load.";
   els.alternative.textContent =
     results[0]?.title || payload.item || "Another option will appear here.";
 
