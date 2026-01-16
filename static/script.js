@@ -51,7 +51,7 @@ function setStatus(message, tone = "info") {
 function toggleLoading(isLoading) {
   if (!els.button) return;
   els.button.disabled = isLoading;
-  els.button.textContent = isLoading ? "Searching..." : "Search";
+  els.button.classList.toggle("btn--loading", isLoading);
 }
 
 function renderResults(payload) {
@@ -126,6 +126,10 @@ function renderResults(payload) {
   els.resultsSection.classList.remove("hidden");
   els.resultsSection.hidden = false;
   setStatus("");
+
+  // Show hint to use chat assistant
+  chatState.currentItem = results[0]?.title || payload.item;
+  showChatHint();
 }
 
 function getNumberValue(input) {
@@ -183,13 +187,33 @@ const chatEls = {
   text: document.getElementById("chatText"),
   send: document.getElementById("chatSend"),
   context: document.getElementById("chatContext"),
+  hint: document.getElementById("chatHint"),
+  hintClose: document.querySelector(".chat-hint__close"),
 };
 
 const chatState = {
   history: [],
   currentItem: null,
   sending: false,
+  hintDismissed: false,
 };
+
+function showChatHint() {
+  if (chatState.hintDismissed || !chatEls.hint) return;
+  setTimeout(() => {
+    chatEls.hint.classList.add("show");
+  }, 800);
+}
+
+function hideChatHint() {
+  if (!chatEls.hint) return;
+  chatEls.hint.classList.remove("show");
+}
+
+function dismissChatHint() {
+  chatState.hintDismissed = true;
+  hideChatHint();
+}
 
 function toggleChat() {
   if (!chatEls.box) return;
@@ -201,6 +225,7 @@ function toggleChat() {
   } else {
     chatEls.box.hidden = false;
     chatEls.box.classList.remove("hidden");
+    dismissChatHint();
   }
 }
 
@@ -256,6 +281,7 @@ async function sendChat() {
 chatEls.fab?.addEventListener("click", toggleChat);
 chatEls.send?.addEventListener("click", sendChat);
 chatEls.text?.addEventListener("keydown", (e) => { if (e.key === "Enter") sendChat(); });
+chatEls.hintClose?.addEventListener("click", dismissChatHint);
 
 // Optional: close on ESC
 document.addEventListener("keydown", (e) => {

@@ -84,7 +84,7 @@
                 />
               </svg>
             </span>
-            Search
+            <span class="btn__text">Search</span>
           </button>
           <p id="status" class="hint"></p>
         </section>
@@ -209,6 +209,15 @@
     <button id="chatFab" class="chat-fab" type="button" aria-label="Open chat">
       <span aria-hidden="true">💬</span>
     </button>
+
+    <!-- Hint arrow pointing to chat -->
+    <div id="chatHint" class="chat-hint">
+      <button class="chat-hint__close" aria-label="Dismiss hint">&times;</button>
+      <span class="chat-hint__text">Ask personalized questions</span>
+      <span class="chat-hint__arrow" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </span>
+    </div>
         
 
         <footer class="footer">
